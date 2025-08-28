@@ -2,7 +2,7 @@
 
 This project is an advanced, session-based RAG (Retrieval-Augmented Generation) application that allows users to chat with their documents. It features a private, temporary knowledge base for each user, ensuring data privacy. The system can ingest multiple document formats (including scanned PDFs with OCR), provide LLM-synthesized answers with accurate citations, and perform a deep analysis to automatically name and summarize common themes across the entire document set.
 
-This project was completed as part of the AI Software Intern Task for Wasserstoff.
+This project was completed as part of the AI Engineer Intern Task for Wasserstoff.
 
 ----------------------------------------------------------------------------------------------------------------------
 
