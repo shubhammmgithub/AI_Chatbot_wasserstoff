@@ -1,0 +1,39 @@
+# --- Core Frameworks ---
+fastapi
+langchain
+streamlit
+qdrant-client
+google-generativeai
+
+# --- LangChain Integrations & Core ---
+langchain-community
+langchain-google-genai
+langchain-text-splitters
+langchain_google_vertexai
+
+# --- Web Server ---
+uvicorn[standard]
+python-dotenv
+pydantic
+
+# --- Embeddings & Models ---
+sentence-transformers  # For creating embeddings
+transformers         # Dependency for sentence-transformers
+torch                # Often needed for transformers, good to specify
+
+# --- Vector Search & ML Utilities ---
+scikit-learn         # For clustering/theme identification
+tqdm 
+numpy                # For progress bars
+
+# --- Document Parsing & OCR Dependencies (for LangChain Loaders) ---
+unstructured[local-inference] # All-in-one loader for many file types (.pdf, .docx, etc.)
+pypdf                # A good fallback PDF loader
+pdfplumber           # For PDF parsing
+pytesseract          # For OCR
+pdf2image             # Needed for OCRing PDFs
+Pillow               # Image handling dependency
+python-magic         # Dependency for unstructured
+
+# --- General Utilities ---
+requests

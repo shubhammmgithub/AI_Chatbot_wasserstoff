@@ -1,0 +1,9 @@
+Metadata-Version: 2.1
+Name: wasserstoff_ai
+Version: 0.1.0
+Requires-Dist: fastapi
+Requires-Dist: uvicorn
+Requires-Dist: python-dotenv
+Requires-Dist: google-generativeai
+Requires-Dist: qdrant-client
+Requires-Dist: langchain-google-vertexai
