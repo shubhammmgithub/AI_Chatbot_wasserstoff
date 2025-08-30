@@ -52,7 +52,8 @@ async def ask_question_post(
             query=body.query,
             session_id=session_id,
             top_k=body.top_k,
-            final_n=body.final_n
+            final_n=body.final_n,
+            chat_history=[msg.dict() for msg in body.chat_history] if body.chat_history else None  
         )
         return AskResponse(**result)
     except Exception as e:

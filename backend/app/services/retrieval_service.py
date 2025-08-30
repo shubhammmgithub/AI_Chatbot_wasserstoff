@@ -1,5 +1,5 @@
 import logging
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional 
 from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage
 from qdrant_client.http import models as qmodels
@@ -35,7 +35,7 @@ class RetrievalService:
             logger.exception(f"Reranker failed: {e}")
             return hits, [h.score for h in hits]
 
-    def retrieve_and_answer(self, query: str, session_id: str, top_k: int = 20, final_n: int = 5) -> Dict[str, Any]:
+    def retrieve_and_answer(self, query: str, session_id: str, top_k: int = 20, final_n: int = 5, chat_history: Optional[List[Dict]]=None) -> Dict[str, Any]:
         collection_name = f"session_{session_id}"
         qvec = self.embedding_service._embed_texts([query])[0]
         
@@ -50,6 +50,15 @@ class RetrievalService:
         reranked_hits, rerank_scores = self._rerank_chunks(query, hits)
         chosen_hits = reranked_hits[:final_n]
         
+        
+        #Build history and contex
+        formatted_history = ""
+        if chat_history:
+            for message in chat_history:
+                role = "User" if message["role"] == "user" else "Assistant"
+                formatted_history += f"{role}: {message['content']}\n"
+        
+        
         ctx_lines, supporting_chunks = [], []
         for i, h in enumerate(chosen_hits, start=1):
             p = h.payload
@@ -61,7 +70,30 @@ class RetrievalService:
         try:
             truncated_context = context[:7000]
             llm = ChatGroq(api_key=GROK_API_KEY, model_name=GROK_MODEL, temperature=0.1)
-            prompt = f"You are an expert research assistant. Answer the user's query based ONLY on the provided context. You MUST cite sources using the format [C#].\n\nUser Query: \"{query}\"\n\nContext:\n---\n{truncated_context}\n---\n\nSynthesized Answer with Citations:"
+            
+            #History aware prompt
+
+
+            
+            prompt = f"""
+            You are an expert research assistant. Answer the user's new query based on the provided conversation history and the new context retrieved from documents.
+            If the user is asking a follow-up question, use the history to understand the context.
+            Base your answer ONLY on the provided context from the documents.
+            You MUST cite sources from the new context using the format [C#].
+
+            Conversation History:
+            ---
+            {formatted_history}---
+
+            New Context from Documents:
+            ---
+            {truncated_context}
+            ---
+            
+            User's New Query: "{query}"
+
+            Synthesized Answer with Citations:
+            """
             
             response = llm.invoke([HumanMessage(content=prompt)])
             final_answer = response.content
@@ -71,3 +103,5 @@ class RetrievalService:
             final_answer = "Sorry, an error occurred while generating the final answer."
 
         return {"answer": final_answer, "supporting_chunks": supporting_chunks}
+            
+            

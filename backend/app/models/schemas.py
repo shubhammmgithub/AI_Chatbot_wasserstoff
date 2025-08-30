@@ -86,6 +86,20 @@ class HealthResponse(BaseModel):
     status: str
     models: Dict[str, str]
     collections: Dict[str, str]
+    
+
+class ChatMessage(BaseModel):
+    """Model for a chat message"""
+    role: str  # 'user' or 'assistant'
+    content: str
+    
+ 
+class AskRequest(BaseModel):
+    """Request model for querying the knowledge base with chat history"""
+    query: str = Field(..., min_length=1)
+    top_k: int = Field(20)
+    final_n: int = Field(5)
+    chat_history: Optional[List[ChatMessage]] = None
 
 
 class ErrorResponse(BaseModel):
