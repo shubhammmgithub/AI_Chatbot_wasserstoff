@@ -79,27 +79,64 @@ with tab1:
 # --- TAB 2: ASK QUESTIONS ---
 with tab2:
     st.header("Query the Knowledge Base")
-    st.write("Ask a question about the content of your ingested documents.")
-    query = st.text_input("Enter your question:")
-    if st.button("Get Answer") and query:
-        with st.spinner("Searching for answers..."):
-            payload = {"query": query, "top_k": 20, "final_n": 5}
+    st.write("Ask questions about your documents. The AI will remember the last 20 messages in this session.")
+
+    # Initialize chat history in session state
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    # Display prior chat messages
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    # Use st.chat_input for a chat-like UI
+    if query := st.chat_input("What is your question?"):
+        # Add user message to history and display it
+        st.session_state.messages.append({"role": "user", "content": query})
+        with st.chat_message("user"):
+            st.markdown(query)
+
+        with st.chat_message("assistant"):
+            message_placeholder = st.empty()
+            message_placeholder.markdown("Thinking...")
+            
+            # Prepare chat history for the API
+            history_for_api = [
+                {"role": "human" if msg["role"] == "user" else "ai", "content": msg["content"]}
+                for msg in st.session_state.messages
+            ]
+            
+            payload = {
+                "query": query,
+                "top_k": 20,
+                "final_n": 5,
+                "chat_history": history_for_api[:-1] # Send all history except the latest user query
+            }
             try:
-                # Add the 'headers=headers' parameter to the request
                 response = requests.post(f"{BACKEND_URL}/ask", json=payload, headers=headers)
                 if response.status_code == 200:
                     data = response.json()
-                    st.subheader("🧠 Synthesized Answer")
-                    st.write(data.get("answer", "No answer could be generated."))
-                    st.subheader("📑 Supporting Passages")
-                    for chunk in data.get("supporting_chunks", []):
-                        citation = f"Source: {chunk.get('doc_id', 'N/A')}, Page: {chunk.get('page', 'N/A')}"
-                        with st.expander(citation):
-                            st.write(chunk.get("text", ""))
+                    full_response = data.get("answer", "No answer could be generated.")
+                    message_placeholder.markdown(full_response)
+                    
+                    with st.expander("View Supporting Passages"):
+                        for chunk in data.get("supporting_chunks", []):
+                            st.info(f"Source: {chunk.get('doc_id')}, Page: {chunk.get('page')}\n\n---\n{chunk.get('text')}")
+                    
+                    # Add AI response to the history
+                    st.session_state.messages.append({"role": "assistant", "content": full_response})
+
+                    # Enforce FIFO history limit (k=20)
+                    if len(st.session_state.messages) > 20:
+                        st.session_state.messages = st.session_state.messages[-20:]
                 else:
                     st.error(f"Error from backend: {response.text}")
+                    # Remove the user's message if the API call fails
+                    st.session_state.messages.pop()
             except requests.exceptions.RequestException as e:
                 st.error(f"Failed to connect to backend: {e}")
+                st.session_state.messages.pop()
 
 # --- TAB 3: EXPLORE THEMES ---
 with tab3:

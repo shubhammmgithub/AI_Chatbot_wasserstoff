@@ -1,12 +1,15 @@
 # 📄 AI Document Research & Theme Identification Chatbot
 
-This project is an advanced, session-based RAG (Retrieval-Augmented Generation) application that allows users to chat with their documents. It features a private, temporary knowledge base for each user, ensuring data privacy. The system can ingest multiple document formats (including scanned PDFs with OCR), provide LLM-synthesized answers with accurate citations, and perform a deep analysis to automatically name and summarize common themes across the entire document set.
+This project is an advanced, session-based RAG (Retrieval-Augmented Generation) application that allows users to have a stateful conversation about their documents. It features a private, temporary knowledge base for each user, ensuring data privacy. The system can ingest multiple document formats (including scanned PDFs with OCR), provide LLM-synthesized answers with accurate citations, and perform a deep analysis to automatically name and summarize common themes.
 
 This project was completed as part of the AI Engineer Intern Task for Wasserstoff.
 
 ----------------------------------------------------------------------------------------------------------------------
 
 ## ✨ Features
+
+
+* **Conversational Memory**: The chatbot remembers the last 20 messages in a session, allowing for natural follow-up questions.
 
 * **Private User Sessions**: Each user gets a temporary, private knowledge base that is cleared when they end their session.
 * **Multi-Format Document Ingestion**: Supports PDFs, DOCX, TXT, and scanned images (PNG, JPG) with built-in OCR.
@@ -79,6 +82,12 @@ These instructions will get you a copy of the project up and running on your loc
 ### Running the Application
 
 You must have **two terminals** open to run the application.
+
+**Terminal 0 : If qdrant is running from docker then**
+```
+docker run -p 6333:6333 qdrant/qdrant
+```
+
 
 **Terminal 1: Start the Backend Server**
 ```bash
