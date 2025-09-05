@@ -4,7 +4,7 @@ from typing import Dict, Any
 from backend.app.core.config import (
     QDRANT_COLLECTION,
     QDRANT_THEMES_COLLECTION,
-    GROK_MODEL,
+    GROQ_MODEL,
     GEMINI_RERANK_MODEL,
 )
 from backend.app.core.logger import setup_logger
@@ -29,7 +29,7 @@ async def health_check() -> Dict[str, Any]:
     return {
         "status": "ok",
         "models": {
-            "answer_model": GROK_MODEL,
+            "answer_model": GROQ_MODEL,
             "rerank_model": GEMINI_RERANK_MODEL,
         },
         "collections": {

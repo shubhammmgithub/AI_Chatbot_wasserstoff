@@ -23,8 +23,8 @@ QDRANT_THEMES_COLLECTION = os.getenv("QDRANT_THEMES_COLLECTION", "document_theme
 EMBED_MODEL_NAME = os.getenv("EMBED_MODEL_NAME", "all-MiniLM-L6-v2")
 FALLBACK_DIM = 384  # Dimension for all-MiniLM-L6-v2
 
-GROK_API_KEY = os.getenv("GROK_API_KEY")
-GROK_MODEL = os.getenv("GROK_MODEL", "llama3-8b-8192") # Final answer model
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b") # Final answer model
 GEMINI_RERANK_MODEL = os.getenv("GEMINI_RERANK_MODEL", "gemini-1.5-flash-latest") # Reranking model
 GEMINI_SMALL_MODEL = os.getenv("GEMINI_SMALL_MODEL", "gemini-1.5-flash") # Optional small model
 
@@ -66,18 +66,24 @@ def get_qdrant_client() -> QdrantClient:
 def qdrant_client() -> QdrantClient:
     return get_qdrant_client()
 
-def configure_genai():
-    """Configure and return the Gemini client module."""
-    if not GROK_API_KEY:
-        raise ValueError("GROK_API_KEY is not set.")
-    genai.configure(api_key=GROK_API_KEY)
-    return genai
+
+#This function is no longer used.
+# because we upgraded our application
+# to use the LangChain framework.
+
+# def configure_genai():
+#     """Configure and return the Gemini client module."""
+#     if not GROQ_API_KEY:
+#         raise ValueError("GROQ_API_KEY is not set.")
+#     genai.configure(api_key=GROQ_API_KEY)
+#     return genai
+
 
 def assert_config():
     """Basic sanity checks for required configuration."""
-    if not GROK_API_KEY:
-        logger.error("GROK_API_KEY must be set in the environment.")
-        raise ValueError("GROK_API_KEY must be set in the environment.")
+    if not GROQ_API_KEY:
+        logger.error("GROQ_API_KEY must be set in the environment.")
+        raise ValueError("GROQ_API_KEY must be set in the environment.")
     if not QDRANT_URL:
         logger.error("QDRANT_URL must be set.")
         raise ValueError("QDRANT_URL must be set.")

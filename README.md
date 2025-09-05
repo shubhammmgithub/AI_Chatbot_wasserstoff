@@ -4,7 +4,7 @@ This project is an advanced, session-based RAG (Retrieval-Augmented Generation) 
 
 This project was completed as part of the AI Engineer Intern Task for Wasserstoff.
 
-----------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
 
 ## ✨ Features
 
@@ -17,7 +17,7 @@ This project was completed as part of the AI Engineer Intern Task for Wasserstof
 * **Automated Theme Analysis**: Can perform a deep analysis to find, name, and summarize common themes across all documents in a session, with results streamed in real-time.
 * **Modern Tech Stack**: Built with a robust FastAPI backend and an interactive Streamlit frontend.
 
-----------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
 
 
 ## 🛠️ Technology Stack
@@ -27,7 +27,7 @@ This project was completed as part of the AI Engineer Intern Task for Wasserstof
 | **Frontend** | Streamlit | To create a fast, interactive web-based user interface. |
 | **Backend API** | FastAPI | For a high-performance, scalable, and modern API. |
 | **Vector DB** | Qdrant | To store document embeddings and perform efficient similarity searches. |
-| **LLM** | Groq (Llama 3) | For fast and high-quality answer synthesis and theme analysis. |
+| **LLM** | Groq (openai/gpt-oss-120b) | For fast and high-quality answer synthesis and theme analysis. |
 | **AI Framework**| LangChain | To orchestrate the interactions with the LLM. |
 | **Embedding Model**| all-MiniLM-L6-v2 | To convert text chunks into high-quality numerical vectors. |
 | **OCR Engine** | Tesseract | To extract text from scanned documents and images. |

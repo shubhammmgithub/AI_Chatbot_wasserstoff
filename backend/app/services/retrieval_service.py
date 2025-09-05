@@ -4,7 +4,7 @@ from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage
 from qdrant_client.http import models as qmodels
 from sentence_transformers import SentenceTransformer, util
-from backend.app.core.config import get_qdrant_client, GROK_MODEL, GROK_API_KEY, EMBED_MODEL_NAME
+from backend.app.core.config import get_qdrant_client, GROQ_MODEL, GROQ_API_KEY, EMBED_MODEL_NAME
 from backend.app.services.embedding_service import EmbeddingService
 
 logger = logging.getLogger("retrieval_service")
@@ -69,7 +69,7 @@ class RetrievalService:
         
         try:
             truncated_context = context[:7000]
-            llm = ChatGroq(api_key=GROK_API_KEY, model_name=GROK_MODEL, temperature=0.1)
+            llm = ChatGroq(api_key=GROQ_API_KEY, model_name=GROQ_MODEL, temperature=0.1)
             
             #History aware prompt
 

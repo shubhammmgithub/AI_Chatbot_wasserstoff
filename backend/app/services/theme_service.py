@@ -7,7 +7,7 @@ from langchain_groq import ChatGroq
 from qdrant_client.http import models
 from langchain_core.messages import HumanMessage
 
-from backend.app.core.config import get_qdrant_client, GROK_MODEL, GROK_API_KEY
+from backend.app.core.config import get_qdrant_client, GROQ_MODEL, GROQ_API_KEY
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ class ThemeService:
         self.qdrant_client = get_qdrant_client()
         
         # Initialize the base LLM
-        llm = ChatGroq(api_key=GROK_API_KEY, model_name=GROK_MODEL, temperature=0.1)
+        llm = ChatGroq(api_key=GROQ_API_KEY, model_name=GROQ_MODEL, temperature=0.1)
         
         # --- 2. CREATE THE STRUCTURED LLM ---
         # Chain the base LLM with the .with_structured_output() method, passing our desired schema
