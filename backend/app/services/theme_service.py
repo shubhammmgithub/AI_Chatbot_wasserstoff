@@ -1,7 +1,7 @@
 import logging
 from typing import Dict, Any, Generator
-
-# Pydantic is used to define our desired output structure
+import json
+import re
 from pydantic import BaseModel, Field
 from langchain_groq import ChatGroq
 from qdrant_client.http import models
@@ -11,8 +11,6 @@ from backend.app.core.config import get_qdrant_client, GROQ_MODEL, GROQ_API_KEY
 
 logger = logging.getLogger(__name__)
 
-# --- 1. DEFINE THE DESIRED OUTPUT STRUCTURE ---
-# We create a Pydantic class to tell the LLM exactly what format to return.
 class ThemeAnalysis(BaseModel):
     """A structured analysis of a single theme from a document set."""
     theme_name: str = Field(description="A short, descriptive title of 3-5 words for the theme.")
@@ -21,16 +19,10 @@ class ThemeAnalysis(BaseModel):
 class ThemeService:
     def __init__(self):
         self.qdrant_client = get_qdrant_client()
-        
-        # Initialize the base LLM
-        llm = ChatGroq(api_key=GROQ_API_KEY, model_name=GROQ_MODEL, temperature=0.1)
-        
-        # --- 2. CREATE THE STRUCTURED LLM ---
-        # Chain the base LLM with the .with_structured_output() method, passing our desired schema
-        self.structured_llm = llm.with_structured_output(ThemeAnalysis)
+        self.llm = ChatGroq(api_key=GROQ_API_KEY, model_name=GROQ_MODEL, temperature=0.1)
+        self.structured_llm = self.llm.with_structured_output(ThemeAnalysis)
 
     def count_unique_themes(self, session_id: str) -> int:
-        # This method remains the same and is correct.
         collection_name = f"session_{session_id}"
         try:
             all_points, _ = self.qdrant_client.scroll(
@@ -46,23 +38,28 @@ class ThemeService:
     def analyze_all_themes_stream(self, session_id: str) -> Generator[Dict[str, Any], None, None]:
         collection_name = f"session_{session_id}"
         logger.info(f"Starting structured analysis for collection: {collection_name}")
-        try:
-            # Code to get unique_theme_labels and themes_with_citations remains the same
-            all_points, _ = self.qdrant_client.scroll(
-                collection_name=collection_name, limit=10000,
-                with_payload=["theme", "doc_id", "page", "para"]
-            )
-            themes_with_citations: Dict[str, list] = {}
-            for point in all_points:
-                theme_label = point.payload.get("theme")
-                if theme_label:
-                    themes_with_citations.setdefault(theme_label, []).append({
-                        "doc_id": point.payload.get("doc_id"), "page": point.payload.get("page"),
-                        "para": point.payload.get("para")
-                    })
-            unique_theme_labels = list(themes_with_citations.keys())
+        
+        # --- Code to get unique themes and citations (No changes here) ---
+        all_points, _ = self.qdrant_client.scroll(
+            collection_name=collection_name, limit=10000,
+            with_payload=["theme", "doc_id", "page", "para"]
+        )
+        themes_with_citations: Dict[str, list] = {}
+        for point in all_points:
+            theme_label = point.payload.get("theme")
+            if theme_label:
+                themes_with_citations.setdefault(theme_label, []).append({
+                    "doc_id": point.payload.get("doc_id"), "page": point.payload.get("page"),
+                    "para": point.payload.get("para")
+                })
+        unique_theme_labels = list(themes_with_citations.keys())
+        
+        # --- Main Analysis Loop ---
+        for label in unique_theme_labels:
+            theme_name = "Analysis Error"
+            theme_summary = "Could not generate a valid response."
             
-            for label in unique_theme_labels:
+            try:
                 # Code to get context_text is the same
                 scroll_res, _ = self.qdrant_client.scroll(
                     collection_name=collection_name,
@@ -71,39 +68,44 @@ class ThemeService:
                 )
                 context_text = "\n---\n".join([point.payload.get("text", "") for point in scroll_res])
                 if not context_text: continue
-
                 truncated_context = context_text[:7000]
 
-                # --- 3. CREATE A SIMPLER PROMPT ---
-                # We no longer need to tell the AI how to format JSON. We just ask it to do the analysis.
-                analysis_prompt = f"""
-                Analyze the following text excerpts and identify the main theme.
-                Provide a descriptive name and a concise summary for this theme.
+                # --- PRIMARY ATTEMPT: Use the structured LLM ---
+                analysis_prompt = f"Analyze the following text excerpts and provide a descriptive name and a concise summary for the main theme.\n\nExcerpts:\n---\n{truncated_context}\n---"
+                response = self.structured_llm.invoke(analysis_prompt)
+                theme_name = response.theme_name
+                theme_summary = response.theme_summary
 
-                Excerpts:
-                ---
-                {truncated_context}
-                ---
-                """
-                
+            except Exception as e:
+                logger.warning(f"Structured output failed for theme {label}: {e}. Attempting fallback...")
+                # --- FALLBACK LOGIC: If structured output fails, use manual parsing ---
                 try:
-                    # --- 4. CALL THE STRUCTURED LLM ---
-                    # The response is now a validated Pydantic object, not a raw string.
-                    response = self.structured_llm.invoke(analysis_prompt)
+                    fallback_prompt = f"""
+                    Your task is to analyze the following text excerpts and generate a theme analysis.
+                    You must respond with only a single, valid JSON object in the format:
+                    {{"theme_name": "A short, descriptive title", "theme_summary": "A concise summary"}}
+                    Do not add any explanation or markdown.
+
+                    Excerpts: --- {truncated_context} ---
+                    JSON Response:
+                    """
+                    response_content = self.llm.invoke([HumanMessage(content=fallback_prompt)]).content
                     
-                    theme_name = response.theme_name
-                    theme_summary = response.theme_summary
+                    match = re.search(r'\{.*\}', response_content, re.DOTALL)
+                    if match:
+                        analysis = json.loads(match.group(0))
+                        theme_name = analysis.get("theme_name", "Unnamed Theme")
+                        theme_summary = analysis.get("theme_summary", "No summary.")
+                    else:
+                        theme_summary = "Fallback parsing also failed to find JSON."
 
-                except Exception as e:
-                    logger.error(f"Structured LLM call failed for theme {label}: {e}")
-                    theme_name = "Analysis Error"
-                    theme_summary = "The AI model failed to generate a structured response."
-
-                yield {
-                    "name": theme_name, "summary": theme_summary,
-                    "citations": themes_with_citations.get(label, []),
-                    "original_label": label
-                }
-        except Exception as e:
-            logger.exception(f"An error occurred during theme analysis stream for session {session_id}: {e}")
-            yield {"error": "An error occurred during theme analysis."}
+                except Exception as fallback_e:
+                    logger.error(f"Fallback parsing also failed for theme {label}: {fallback_e}")
+            
+            # --- FINAL YIELD ---
+            # This is now correctly placed to yield a result for every theme in the loop.
+            yield {
+                "name": theme_name, "summary": theme_summary,
+                "citations": themes_with_citations.get(label, []),
+                "original_label": label
+            }

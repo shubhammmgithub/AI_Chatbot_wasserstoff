@@ -105,3 +105,16 @@ class AskRequest(BaseModel):
 class ErrorResponse(BaseModel):
     """Response model for errors"""
     detail: str
+    
+    
+# --- Rerank Models ---
+
+class RerankResult(BaseModel):
+    """Schema for a single reranked document."""
+    index: int = Field(description="The original index of the document in the provided list.")
+    relevance_score: float = Field(description="A relevance score from 0.0 to 1.0, where 1.0 is most relevant.")
+    reason: str = Field(description="A brief justification for the assigned score.")
+
+class RerankResponse(BaseModel):
+    """Schema for the LLM's full reranking response."""
+    results: List[RerankResult] = Field(description="A list of reranked documents, sorted from most to least relevant.")    

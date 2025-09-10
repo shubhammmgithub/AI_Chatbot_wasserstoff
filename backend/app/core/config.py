@@ -24,9 +24,11 @@ EMBED_MODEL_NAME = os.getenv("EMBED_MODEL_NAME", "all-MiniLM-L6-v2")
 FALLBACK_DIM = 384  # Dimension for all-MiniLM-L6-v2
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b") # Final answer model
-GEMINI_RERANK_MODEL = os.getenv("GEMINI_RERANK_MODEL", "gemini-1.5-flash-latest") # Reranking model
-GEMINI_SMALL_MODEL = os.getenv("GEMINI_SMALL_MODEL", "gemini-1.5-flash") # Optional small model
+GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b") # Final answer model (larger model)
+# --- Rerank Model Configuration ---
+RERANK_LLM_MODEL = os.getenv("RERANK_LLM_MODEL", GROQ_MODEL)  
+
+#GEMINI_RERANK_MODEL = os.getenv("GEMINI_RERANK_MODEL", "gemini-1.5-flash-latest") 
 
 # --- OCR Configuration ---
 OCR_THRESHOLD = int(os.getenv("OCR_THRESHOLD", "150"))

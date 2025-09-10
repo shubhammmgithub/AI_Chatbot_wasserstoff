@@ -5,7 +5,7 @@ from backend.app.core.config import (
     QDRANT_COLLECTION,
     QDRANT_THEMES_COLLECTION,
     GROQ_MODEL,
-    GEMINI_RERANK_MODEL,
+    RERANK_LLM_MODEL,
 )
 from backend.app.core.logger import setup_logger
 from backend.app.models.schemas import HealthResponse
@@ -30,7 +30,7 @@ async def health_check() -> Dict[str, Any]:
         "status": "ok",
         "models": {
             "answer_model": GROQ_MODEL,
-            "rerank_model": GEMINI_RERANK_MODEL,
+            "rerank_llm_model" : RERANK_LLM_MODEL,
         },
         "collections": {
             "primary": QDRANT_COLLECTION,
