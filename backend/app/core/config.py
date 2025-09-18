@@ -3,7 +3,6 @@ from typing import Dict, Any, Optional
 
 from dotenv import load_dotenv
 from qdrant_client import QdrantClient
-import google.generativeai as genai
 
 from backend.app.core.logger import setup_logger
 
@@ -24,11 +23,12 @@ EMBED_MODEL_NAME = os.getenv("EMBED_MODEL_NAME", "all-MiniLM-L6-v2")
 FALLBACK_DIM = 384  # Dimension for all-MiniLM-L6-v2
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b") # Final answer model (larger model)
+GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b") # Final answer model 
+
 # --- Rerank Model Configuration ---
 RERANK_LLM_MODEL = os.getenv("RERANK_LLM_MODEL", GROQ_MODEL)  
 
-#GEMINI_RERANK_MODEL = os.getenv("GEMINI_RERANK_MODEL", "gemini-1.5-flash-latest") 
+
 
 # --- OCR Configuration ---
 OCR_THRESHOLD = int(os.getenv("OCR_THRESHOLD", "150"))
@@ -68,17 +68,6 @@ def get_qdrant_client() -> QdrantClient:
 def qdrant_client() -> QdrantClient:
     return get_qdrant_client()
 
-
-#This function is no longer used.
-# because we upgraded our application
-# to use the LangChain framework.
-
-# def configure_genai():
-#     """Configure and return the Gemini client module."""
-#     if not GROQ_API_KEY:
-#         raise ValueError("GROQ_API_KEY is not set.")
-#     genai.configure(api_key=GROQ_API_KEY)
-#     return genai
 
 
 def assert_config():
