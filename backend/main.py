@@ -2,6 +2,17 @@ import uvicorn
 import os
 from dotenv import load_dotenv
 
+#updated during deployment
+import sys
+from pathlib import Path
+
+
+
+# Adding the project root to the Python path ---
+# This ensures that imports like 'from backend.app...' work correctly.
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
+
 # Load environment variables
 load_dotenv()
 
